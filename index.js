@@ -72,15 +72,12 @@ client.on("ready", () => {
 client.on("message", async (message) => {
   if (message.body === "!ping") {
     message.reply("pong"); // mode reply
-    // client.sendMessage(message.from, 'pong'); //mode non reply
   } else if (message.body.startsWith("!sendto ")) {
     // Direct send a new message to specific id
     var number = message.body.split(" ")[1];
     var messageIndex = message.body.indexOf(number) + number.length;
     var messageBody = message.body.slice(messageIndex, message.body.length);
     number = number.includes("@c.us") ? number : `${number}@c.us`;
-    // var chat = message.getChat();
-    // message.sendSeen();
     client.sendMessage(number, messageBody);
     message.reply("message sent to " + number);
   } else if (message.body === "!info") {
