@@ -1,0 +1,4 @@
+node_modules
+package-lock.json
+downloaded-media/
+.wwebjs_auth
