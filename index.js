@@ -64,7 +64,7 @@ client.initialize();
 
 io.on("connection", function (socket) {
   socket.emit("message", "Connecting...");
-  
+
   client.on("change_state", (state) => {
     socket.emit("message", `State changed to ${state}`);
   });
@@ -134,27 +134,42 @@ client.on("message", async (message) => {
         Platform: ${info.platform}
     `
     );
-    //   } else if (message.body === "!buttons") {
-    //     var button = new Buttons(
-    //       "Button body",
-    //       [{ body: "bt1" }, { body: "bt2" }, { body: "bt3" }],
-    //       "title",
-    //       "footer"
-    //     );
-    //     client.sendMessage(message.from, button);
-    //   } else if (message.body === "!lists") {
-    //     client.sendMessage(message.from, "lists");
-    //     var sections = [
-    //       {
-    //         title: "sectionTitle",
-    //         rows: [
-    //           { title: "ListItem1", description: "desc" },
-    //           { title: "ListItem2" },
-    //         ],
-    //       },
-    //     ];
-    //     var list = new List("List body", "btnText", sections, "Title", "footer");
-    //     client.sendMessage(message.from, list);
+  } else if (message.body === "!buttons") {
+    client.sendMessage(message.from, "buttons");
+    var button = new Buttons(
+      "Button body",
+      [
+        { id: "customId", body: "button1" },
+        { body: "button2" },
+        { body: "button3" },
+        { body: "button4" },
+      ],
+      "title",
+      "footer"
+    );
+    client.sendMessage(message.from, button);
+  } else if (message.body === "!lists") {
+    client.sendMessage(message.from, "lists");
+    var sections = [
+      {
+        title: "sectionTitle",
+        rows: [
+          // { title: "ListItem1", description: "desc" },
+          { title: "Ir. Soekarno" },
+          { title: "Jend. Soedirman" },
+          { title: "Moh. Hatta" },
+          { title: "Ya ndak tahu kok tanya saya." },
+        ],
+      },
+    ];
+    var list = new List(
+      "Siapa nama Presiden Republik Indonesia",
+      "Opsi",
+      sections,
+      "Pertanyaan 1",
+      "footer"
+    );
+    client.sendMessage(message.from, list);
   } else if (message.body == "!groups") {
     client.getChats().then((chats) => {
       const groups = chats.filter((chat) => chat.isGroup);
