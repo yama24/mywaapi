@@ -132,7 +132,7 @@ client.on("message", async (message) => {
         User name: ${info.pushname}
         My number: ${info.wid.user}
         Platform: ${info.platform}
-    `
+      `
     );
   } else if (message.body === "!buttons") {
     client.sendMessage(message.from, "buttons");
