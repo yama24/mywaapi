@@ -136,7 +136,7 @@ client.on("message", async (message) => {
         if (num2 < 6) {
           game["pertanyaan" + num2](client, message.from);
         } else {
-          client.sendMessage(message.from, "Selamat, anda menang!\nTerima kasih telah berpartisipasi");
+          client.sendMessage(message.from, "Selamat, anda menang! ☺️🎉🎉\nTerima kasih telah berpartisipasi");
         }
       } else {
         game["pertanyaan" + num](client, message.from);
