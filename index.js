@@ -6,7 +6,7 @@ const fileUpload = require("express-fileupload");
 const axios = require("axios");
 const socketIO = require("socket.io");
 const fs = require("fs");
-const mime = require('mime-types');
+const mime = require("mime-types");
 const { phoneNumberFormatter } = require("./formatter");
 const { body, validationResult } = require("express-validator");
 const {
@@ -250,10 +250,10 @@ client.on("message", async (message) => {
         try {
           fs.writeFileSync(fullFilename, media.data, { encoding: "base64" });
           console.log("File downloaded successfully!", fullFilename);
-          io.emit("File downloaded successfully!", fullFilename);
+          io.emit("message", "File downloaded successfully!" + fullFilename);
         } catch (err) {
           console.log("Failed to save the file:", err);
-          io.emit("Failed to save the file:", err);
+          io.emit("message", "Failed to save the file:" + err);
         }
       }
     });
