@@ -5,6 +5,7 @@ const http = require("http");
 const fileUpload = require("express-fileupload");
 const axios = require("axios");
 const socketIO = require("socket.io");
+const fs = require("fs");
 const { phoneNumberFormatter } = require("./formatter");
 const { body, validationResult } = require("express-validator");
 const {
@@ -15,6 +16,8 @@ const {
   Buttons,
   ClientInfo,
 } = require("whatsapp-web.js");
+
+const game = require("./game");
 
 const port = process.env.PORT || 8000;
 
@@ -113,6 +116,33 @@ io.on("connection", function (socket) {
 // });
 
 client.on("message", async (message) => {
+  if (message.type == "list_response") {
+    fs.readFile("./res.json", function (err, data) {
+      var json = JSON.parse(data);
+      json.push(message);
+      fs.writeFile("./res.json", JSON.stringify(json), function (err) {
+        if (err) throw err;
+        console.log("Saved!");
+      });
+    });
+    if (message._data.quotedMsg.list.title) {
+      numStr = message._data.quotedMsg.list.title.substr(
+        message._data.quotedMsg.list.title.length - 1
+      );
+      num = parseInt(numStr);
+
+      if (game["jawaban"](client, num, message.from, message.body)) {
+        num2 = num + 1;
+        if (num2 < 6) {
+          game["pertanyaan" + num2](client, message.from);
+        } else {
+          client.sendMessage(message.from, "Selamat, anda menang!\nTerima kasih telah berpartisipasi");
+        }
+      } else {
+        game["pertanyaan" + num](client, message.from);
+      }
+    }
+  }
   if (message.body === "!ping") {
     message.reply("pong"); // mode reply
   } else if (message.body.startsWith("!sendto ")) {
@@ -170,6 +200,12 @@ client.on("message", async (message) => {
       "footer"
     );
     client.sendMessage(message.from, list);
+  } else if (message.body === "!game") {
+    client.sendMessage(
+      message.from,
+      `Hi, let's play a game!\nJawab pertanyaan berikut dengan benar ya!`
+    );
+    game["pertanyaan1"](client, message.from);
   } else if (message.body == "!groups") {
     client.getChats().then((chats) => {
       const groups = chats.filter((chat) => chat.isGroup);
