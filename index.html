@@ -16,30 +16,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Marcellus&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js" crossorigin="anonymous"></script>
-    <script>
-        $(document).ready(function () {
-            var socket = io();
-
-            socket.on('message', function (msg) {
-                $('.logs').append($('<li>').text(msg));
-            });
-
-            socket.on('qr', function (src) {
-                $('#qrcode').attr('src', src);
-                $('#qrcode').show();
-            });
-
-            socket.on('ready', function (data) {
-                $('#qrcode').hide();
-            });
-
-            socket.on('authenticated', function (data) {
-                $('#qrcode').hide();
-            });
-        });
-    </script>
 
 </head>
 
@@ -110,7 +86,7 @@
                                     <div class="wallet-info">
                                         <!-- <div class="wallet-value">Logs :</div> -->
                                         <div class="wallet-label">
-                                            <img src="html/assets/qr-code.svg" width="200px" id="qrcode" alt="QR code">
+                                            <img src="" style="display: none;" width="200px" id="qrcode" alt="QR code">
                                         </div>
                                     </div>
                                 </div>
@@ -139,9 +115,34 @@
         </div>
     </div>
 
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js" crossorigin="anonymous"></script>
+
     <script src="html/assets/js/libs.js"></script>
     <script src="html/assets/js/main.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var socket = io();
+
+            socket.on('message', function (msg) {
+                $('.logs').append($('<li>').text(msg));
+            });
+
+            socket.on('qr', function (src) {
+                $('#qrcode').attr('src', src);
+                $('#qrcode').show();
+            });
+
+            socket.on('ready', function (data) {
+                $('#qrcode').hide();
+            });
+
+            socket.on('authenticated', function (data) {
+                $('#qrcode').hide();
+            });
+        });
+    </script>
 
 </body>
 

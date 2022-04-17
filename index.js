@@ -6,6 +6,7 @@ const fileUpload = require("express-fileupload");
 const axios = require("axios");
 const socketIO = require("socket.io");
 const fs = require("fs");
+const mime = require('mime-types');
 const { phoneNumberFormatter } = require("./formatter");
 const { body, validationResult } = require("express-validator");
 const {
@@ -74,6 +75,8 @@ io.on("connection", function (socket) {
 
   client.on("qr", (qr) => {
     console.log("QR RECEIVED", qr);
+    //   // console.log('QR RECEIVED', qr);
+    //   qrcode.generate(qr, { small: true });
     qrcode.toDataURL(qr, (err, url) => {
       socket.emit("qr", url);
       socket.emit("message", "QR Code received, scan please!");
@@ -102,21 +105,12 @@ io.on("connection", function (socket) {
   });
 });
 
-// client.on("qr", (qr) => {
-//   // console.log('QR RECEIVED', qr);
-//   qrcode.generate(qr, { small: true });
-// });
-
-// client.on("authenticated", () => {
-//   console.log("Authenticated");
-// });
-
-// client.on("ready", () => {
-//   console.log("Client is ready!");
-// });
-
 client.on("message", async (message) => {
   if (message.type == "list_response") {
+    if (!fs.existsSync("./res.json")) {
+      fs.writeFileSync("./res.json", JSON.stringify([]));
+    }
+
     fs.readFile("./res.json", function (err, data) {
       var json = JSON.parse(data);
       json.push(message);
@@ -136,7 +130,10 @@ client.on("message", async (message) => {
         if (num2 < 6) {
           game["pertanyaan" + num2](client, message.from);
         } else {
-          client.sendMessage(message.from, "Selamat, anda menang! ☺️🎉🎉\nTerima kasih telah berpartisipasi");
+          client.sendMessage(
+            message.from,
+            "Selamat, anda menang! ☺️🎉🎉\nTerima kasih telah berpartisipasi"
+          );
         }
       } else {
         game["pertanyaan" + num](client, message.from);
@@ -223,6 +220,42 @@ client.on("message", async (message) => {
       }
     });
   }
+  // Downloading media
+  if (message.hasMedia) {
+    message.downloadMedia().then((media) => {
+      // To better understanding
+      // Please look at the console what data we get
+      // console.log(media);
+
+      if (media) {
+        // The folder to store: change as you want!
+        // Create if not exists
+        const mediaPath = "./downloaded-media/";
+
+        if (!fs.existsSync(mediaPath)) {
+          fs.mkdirSync(mediaPath);
+        }
+
+        // Get the file extension by mime-type
+        const extension = mime.extension(media.mimetype);
+
+        // Filename: change as you want!
+        // I will use the time for this example
+        // Why not use media.filename? Because the value is not certain exists
+        const filename = message.from + new Date().getTime();
+
+        const fullFilename = mediaPath + filename + "." + extension;
+
+        // Save to file
+        try {
+          fs.writeFileSync(fullFilename, media.data, { encoding: "base64" });
+          console.log("File downloaded successfully!", fullFilename);
+        } catch (err) {
+          console.log("Failed to save the file:", err);
+        }
+      }
+    });
+  }
 });
 
 const checkRegisteredNumber = async function (number) {
@@ -281,9 +314,10 @@ app.post("/send-media", async (req, res) => {
   const caption = req.body.caption;
   const fileUrl = req.body.file;
 
-  // const media = MessageMedia.fromFilePath('./image-example.png');
+  // const media = MessageMedia.fromFilePath("./image-example.png"); // untuk kirim based on file
   // const file = req.files.file;
-  // const media = new MessageMedia(file.mimetype, file.data.toString('base64'), file.name);
+  // const media = new MessageMedia(file.mimetype, file.data.toString("base64"), file.name);
+
   let mimetype;
   const attachment = await axios
     .get(fileUrl, {
