@@ -190,7 +190,7 @@ client.on("message", async (message) => {
       },
     ];
     var list = new List(
-      "Siapa nama Presiden Republik Indonesia",
+      "Siapa nama Presiden Republik Indonesia (test)",
       "Opsi",
       sections,
       "Pertanyaan 1",
@@ -250,8 +250,10 @@ client.on("message", async (message) => {
         try {
           fs.writeFileSync(fullFilename, media.data, { encoding: "base64" });
           console.log("File downloaded successfully!", fullFilename);
+          io.emit("File downloaded successfully!", fullFilename);
         } catch (err) {
           console.log("Failed to save the file:", err);
+          io.emit("Failed to save the file:", err);
         }
       }
     });
