@@ -20,13 +20,30 @@ WhatsApp API made by me
 I'm a full stack developer...
 
 
+
 ## Installation
 
-Install waapi project with npm after cloning
+Clone the project
+
+```bash
+  git clone https://github.com/yama24/mywaapi.git
+```
+
+Go to the project directory
+
+```bash
+  cd mywaapi
+```
+
+Install dependencies
 
 ```bash
   npm install
-  cd mywaapi
+```
+
+Start the server
+
+```bash
   npm run start:dev
 ```
 
