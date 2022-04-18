@@ -19,6 +19,9 @@ WhatsApp API made by me
 ## 🚀 About Me
 I'm a full stack developer...
 
+## 🔗 Links
+[![portfolio](https://img.shields.io/badge/my_portfolio-000?style=for-the-badge&logo=ko-fi&logoColor=white)](https://humanoo.id/yama)
+[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/yayan-maulana-836883212/)
 
 
 ## Installation
@@ -42,6 +45,12 @@ Install dependencies
 ```
 
 Start the server
+
+```bash
+  npm run start
+```
+
+and for the Dev mode
 
 ```bash
   npm run start:dev
@@ -87,3 +96,16 @@ then open http://localhost:8000/ for scaning qrCode or scaning qrCode from termi
 | `message` | `string` | **Required**. message you want to send |
 
 The group id can be obtained by sending a !groups message to the bot. then the bot will send all group data in which there are bots and you.
+
+## Hidden Feature
+
+Do this by sending a message to the bot
+
+| Message             | Response                                                                |
+| ----------------- | ------------------------------------------------------------------ |
+| **!ping** | pong |
+| **!info** | an information about bot |
+| **!buttons** | an example buttons of WhatsApp (under maintenance) |
+| **!lists** | an example list of WhatsApp |
+| **!game** | a simple multiple choice game (change question and answer in [game.js](https://github.com/yama24/mywaapi/blob/view/game.js)) |
+| **!groups** | a list of groups that you and the bot follow |
