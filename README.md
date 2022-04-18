@@ -16,14 +16,6 @@ WhatsApp API made by me
  - [whatsapp-web.js](https://github.com/pedroslopez/whatsapp-web.js/)
 
 
-## 🚀 About Me
-I'm a full stack developer...
-
-## 🔗 Links
-[![portfolio](https://img.shields.io/badge/my_portfolio-000?style=for-the-badge&logo=ko-fi&logoColor=white)](https://humanoo.id/yama)
-[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/yayan-maulana-836883212/)
-
-
 ## Installation
 
 Clone the project
@@ -109,3 +101,12 @@ Do this by sending a message to the bot
 | **!lists** | an example list of WhatsApp |
 | **!game** | a simple multiple choice game (change question and answer in [game.js](https://github.com/yama24/mywaapi/blob/view/game.js)) |
 | **!groups** | a list of groups that you and the bot follow |
+
+
+## 🚀 About Me
+I'm a full stack developer...
+
+## 🔗 Links
+[![portfolio](https://img.shields.io/badge/my_portfolio-000?style=for-the-badge&logo=ko-fi&logoColor=white)](https://humanoo.id/yama)
+[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/yayan-maulana-836883212/)
+
