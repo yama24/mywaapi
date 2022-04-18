@@ -31,4 +31,42 @@ Install waapi project with npm after cloning
 ```
 
 then open http://localhost:8000/ for scaning qrCode or scaning qrCode from terminal
-d
+
+
+## API Reference
+
+#### Send Message
+
+```http
+  POST /send-message
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `number` | `string` | **Required**. destination number |
+| `message` | `string` | **Required**. message you want to send |
+
+#### Send Media
+
+```http
+  POST /send-media
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `number` | `string` | **Required**. destination number |
+| `caption` | `string` | **Required**. required captions |
+| `file` | `string` | **Required**. url or base64 file format |
+
+#### Send Message To Group
+
+```http
+  POST /send-group-message
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `id` | `string` | **Required**. destination number (6289861821283-1627374981@g.us) |
+| `message` | `string` | **Required**. message you want to send |
+
+The group id can be obtained by sending a !groups message to the bot. then the bot will send all group data in which there are bots and you.
