@@ -97,7 +97,7 @@ Do this by sending a message to the bot
 | Message             | Response                                                                |
 | ----------------- | ------------------------------------------------------------------ |
 | **!ping** | pong |
-| **!sendto 6289861821283 this is the message** | bot will send message 'this is the message' to '628986182128' |
+| **!sendto 6289861821283 this is the message** | bot will send message 'this is the message' to '6289861821283' |
 | **!info** | an information about bot |
 | **!buttons** | an example buttons of WhatsApp (under maintenance) |
 | **!lists** | an example list of WhatsApp |
