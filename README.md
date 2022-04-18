@@ -6,7 +6,6 @@ WhatsApp API made by me
 ## Thanks for :
  - [axios](https://github.com/axios/axios)
  - [express](https://github.com/expressjs/express)
- - [How to write a Good readme](https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-project)
  - [express-fileupload](https://github.com/richardgirges/express-fileupload)
  - [express-validator](https://github.com/express-validator/express-validator)
  - [nodemon](https://github.com/remy/nodemon)
