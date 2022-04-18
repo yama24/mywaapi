@@ -17,6 +17,8 @@ WhatsApp API made by me
 
 ## Installation
 
+Before installation, make sure NodeJs version 12 or higher and npm is installed
+
 Clone the project
 
 ```bash
