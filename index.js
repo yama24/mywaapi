@@ -148,7 +148,7 @@ client.on("message", async (message) => {
     var messageIndex = message.body.indexOf(number) + number.length;
     var messageBody = message.body.slice(messageIndex, message.body.length);
     number = number.includes("@c.us") ? number : `${number}@c.us`;
-    client.sendMessage(number, messageBody);
+    client.sendMessage(phoneNumberFormatter(number), messageBody);
     message.reply("message sent to " + number);
   } else if (message.body === "!info") {
     let info = client.info;
