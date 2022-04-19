@@ -1,4 +1,4 @@
-// const qrcode = require("qrcode-terminal");
+// const qrterminal = require("qrcode-terminal");
 const qrcode = require("qrcode");
 const express = require("express");
 const http = require("http");
@@ -71,12 +71,12 @@ io.on("connection", function (socket) {
 
   client.on("change_state", (state) => {
     socket.emit("message", `State changed to ${state}`);
+    console.log("State changed to", state);
   });
 
   client.on("qr", (qr) => {
-    // console.log("QR RECEIVED", qr);
-    //   // console.log('QR RECEIVED', qr);
-    qrcode.generate(qr, { small: true });
+    console.log("QR RECEIVED", qr);
+    // qrterminal.generate(qr, { small: true });
     qrcode.toDataURL(qr, (err, url) => {
       socket.emit("qr", url);
       socket.emit("message", "QR Code received, scan please!");
@@ -86,20 +86,23 @@ io.on("connection", function (socket) {
   client.on("ready", () => {
     socket.emit("ready", "Whatsapp is ready!");
     socket.emit("message", "Whatsapp is ready!");
+    console.log("READY");
   });
 
   client.on("authenticated", () => {
+    socket.emit("authenticated", "Whatsapp is authenticated!");
     socket.emit("message", "Whatsapp is authenticated!");
     console.log("AUTHENTICATED");
   });
 
   client.on("auth_failure", function (session) {
     socket.emit("message", "Auth failure, restarting...");
+    console.log("AUTH FAILURE");
   });
 
   client.on("disconnected", (reason) => {
     socket.emit("message", "Whatsapp is disconnected!");
-    fs.rmdir("./.wwebjs_auth/");
+    console.log("DISCONNECTED");
     client.destroy();
     client.initialize();
   });
@@ -221,43 +224,43 @@ client.on("message", async (message) => {
     });
   }
   // Downloading media
-  if (message.hasMedia) {
-    message.downloadMedia().then((media) => {
-      // To better understanding
-      // Please look at the console what data we get
-      // console.log(media);
+  // if (message.hasMedia) {
+  //   message.downloadMedia().then((media) => {
+  //     // To better understanding
+  //     // Please look at the console what data we get
+  //     // console.log(media);
 
-      if (media) {
-        // The folder to store: change as you want!
-        // Create if not exists
-        const mediaPath = "./downloaded-media/";
+  //     if (media) {
+  //       // The folder to store: change as you want!
+  //       // Create if not exists
+  //       const mediaPath = "./downloaded-media/";
 
-        if (!fs.existsSync(mediaPath)) {
-          fs.mkdirSync(mediaPath);
-        }
+  //       if (!fs.existsSync(mediaPath)) {
+  //         fs.mkdirSync(mediaPath);
+  //       }
 
-        // Get the file extension by mime-type
-        const extension = mime.extension(media.mimetype);
+  //       // Get the file extension by mime-type
+  //       const extension = mime.extension(media.mimetype);
 
-        // Filename: change as you want!
-        // I will use the time for this example
-        // Why not use media.filename? Because the value is not certain exists
-        const filename = message.from + new Date().getTime();
+  //       // Filename: change as you want!
+  //       // I will use the time for this example
+  //       // Why not use media.filename? Because the value is not certain exists
+  //       const filename = message.from + new Date().getTime();
 
-        const fullFilename = mediaPath + filename + "." + extension;
+  //       const fullFilename = mediaPath + filename + "." + extension;
 
-        // Save to file
-        try {
-          fs.writeFileSync(fullFilename, media.data, { encoding: "base64" });
-          console.log("File downloaded successfully!", fullFilename);
-          io.emit("message", "File downloaded successfully!" + fullFilename);
-        } catch (err) {
-          console.log("Failed to save the file:", err);
-          io.emit("message", "Failed to save the file:" + err);
-        }
-      }
-    });
-  }
+  //       // Save to file
+  //       try {
+  //         fs.writeFileSync(fullFilename, media.data, { encoding: "base64" });
+  //         console.log("File downloaded successfully!", fullFilename);
+  //         io.emit("message", "File downloaded successfully!" + fullFilename);
+  //       } catch (err) {
+  //         console.log("Failed to save the file:", err);
+  //         io.emit("message", "Failed to save the file:" + err);
+  //       }
+  //     }
+  //   });
+  // }
 });
 
 const checkRegisteredNumber = async function (number) {
