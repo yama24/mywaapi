@@ -41,7 +41,7 @@ app.use(
 app.use("/html/assets", express.static(__dirname + "/html/assets"));
 
 app.get("/", (req, res) => {
-  res.sendFile("index.html", {
+  res.sendFile("/html/index.html", {
     root: __dirname,
   });
 });
@@ -74,9 +74,9 @@ io.on("connection", function (socket) {
   });
 
   client.on("qr", (qr) => {
-    console.log("QR RECEIVED", qr);
+    // console.log("QR RECEIVED", qr);
     //   // console.log('QR RECEIVED', qr);
-    //   qrcode.generate(qr, { small: true });
+    qrcode.generate(qr, { small: true });
     qrcode.toDataURL(qr, (err, url) => {
       socket.emit("qr", url);
       socket.emit("message", "QR Code received, scan please!");
@@ -89,7 +89,6 @@ io.on("connection", function (socket) {
   });
 
   client.on("authenticated", () => {
-    socket.emit("authenticated", "Whatsapp is authenticated!");
     socket.emit("message", "Whatsapp is authenticated!");
     console.log("AUTHENTICATED");
   });
@@ -100,6 +99,7 @@ io.on("connection", function (socket) {
 
   client.on("disconnected", (reason) => {
     socket.emit("message", "Whatsapp is disconnected!");
+    fs.rmdir("./.wwebjs_auth/");
     client.destroy();
     client.initialize();
   });
