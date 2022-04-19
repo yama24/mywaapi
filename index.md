@@ -9,7 +9,7 @@ Unofficial WhatsApp API made by me on NodeJs
  - [express-fileupload](https://github.com/richardgirges/express-fileupload)
  - [express-validator](https://github.com/express-validator/express-validator)
  - [nodemon](https://github.com/remy/nodemon)
- - [qrcode](https://github.com/soldair/node-qrcode)
+ - [node-qrcode](https://github.com/soldair/node-qrcode)
  - [qrcode-terminal](https://github.com/gtanner/qrcode-terminal)
  - [socket.io](https://github.com/socketio/socket.io)
  - [whatsapp-web.js](https://github.com/pedroslopez/whatsapp-web.js/)
