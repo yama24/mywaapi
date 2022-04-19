@@ -1,8 +1,12 @@
-const qrcode = require("qrcode-terminal");
+// const qrcode = require("qrcode-terminal");
+const qrcode = require("qrcode");
 const express = require("express");
 const http = require("http");
 const fileUpload = require("express-fileupload");
 const axios = require("axios");
+const socketIO = require("socket.io");
+const fs = require("fs");
+const mime = require("mime-types");
 const { phoneNumberFormatter } = require("./formatter");
 const { body, validationResult } = require("express-validator");
 const {
@@ -11,12 +15,16 @@ const {
   MessageMedia,
   List,
   Buttons,
+  ClientInfo,
 } = require("whatsapp-web.js");
+
+const game = require("./game");
 
 const port = process.env.PORT || 8000;
 
 const app = express();
 const server = http.createServer(app);
+const io = socketIO(server);
 
 app.use(express.json());
 app.use(
@@ -29,6 +37,8 @@ app.use(
     debug: true,
   })
 );
+
+app.use("/html/assets", express.static(__dirname + "/html/assets"));
 
 app.get("/", (req, res) => {
   res.sendFile("index.html", {
@@ -56,20 +66,80 @@ const client = new Client({
 
 client.initialize();
 
-client.on("qr", (qr) => {
-  // console.log('QR RECEIVED', qr);
-  qrcode.generate(qr, { small: true });
-});
+io.on("connection", function (socket) {
+  socket.emit("message", "Connecting...");
 
-client.on("authenticated", () => {
-  console.log("Authenticated");
-});
+  client.on("change_state", (state) => {
+    socket.emit("message", `State changed to ${state}`);
+  });
 
-client.on("ready", () => {
-  console.log("Client is ready!");
+  client.on("qr", (qr) => {
+    console.log("QR RECEIVED", qr);
+    //   // console.log('QR RECEIVED', qr);
+    //   qrcode.generate(qr, { small: true });
+    qrcode.toDataURL(qr, (err, url) => {
+      socket.emit("qr", url);
+      socket.emit("message", "QR Code received, scan please!");
+    });
+  });
+
+  client.on("ready", () => {
+    socket.emit("ready", "Whatsapp is ready!");
+    socket.emit("message", "Whatsapp is ready!");
+  });
+
+  client.on("authenticated", () => {
+    socket.emit("authenticated", "Whatsapp is authenticated!");
+    socket.emit("message", "Whatsapp is authenticated!");
+    console.log("AUTHENTICATED");
+  });
+
+  client.on("auth_failure", function (session) {
+    socket.emit("message", "Auth failure, restarting...");
+  });
+
+  client.on("disconnected", (reason) => {
+    socket.emit("message", "Whatsapp is disconnected!");
+    client.destroy();
+    client.initialize();
+  });
 });
 
 client.on("message", async (message) => {
+  if (message.type == "list_response") {
+    if (!fs.existsSync("./res.json")) {
+      fs.writeFileSync("./res.json", JSON.stringify([]));
+    }
+
+    fs.readFile("./res.json", function (err, data) {
+      var json = JSON.parse(data);
+      json.push(message);
+      fs.writeFile("./res.json", JSON.stringify(json), function (err) {
+        if (err) throw err;
+        console.log("Saved!");
+      });
+    });
+    if (message._data.quotedMsg.list.title) {
+      numStr = message._data.quotedMsg.list.title.substr(
+        message._data.quotedMsg.list.title.length - 1
+      );
+      num = parseInt(numStr);
+
+      if (game["jawaban"](client, num, message.from, message.body)) {
+        num2 = num + 1;
+        if (num2 < 6) {
+          game["pertanyaan" + num2](client, message.from);
+        } else {
+          client.sendMessage(
+            message.from,
+            "Selamat, anda menang! ☺️🎉🎉\nTerima kasih telah berpartisipasi"
+          );
+        }
+      } else {
+        game["pertanyaan" + num](client, message.from);
+      }
+    }
+  }
   if (message.body === "!ping") {
     message.reply("pong"); // mode reply
   } else if (message.body.startsWith("!sendto ")) {
@@ -78,7 +148,7 @@ client.on("message", async (message) => {
     var messageIndex = message.body.indexOf(number) + number.length;
     var messageBody = message.body.slice(messageIndex, message.body.length);
     number = number.includes("@c.us") ? number : `${number}@c.us`;
-    client.sendMessage(number, messageBody);
+    client.sendMessage(phoneNumberFormatter(number), messageBody);
     message.reply("message sent to " + number);
   } else if (message.body === "!info") {
     let info = client.info;
@@ -89,29 +159,50 @@ client.on("message", async (message) => {
         User name: ${info.pushname}
         My number: ${info.wid.user}
         Platform: ${info.platform}
-    `
+      `
     );
-    //   } else if (message.body === "!buttons") {
-    //     var button = new Buttons(
-    //       "Button body",
-    //       [{ body: "bt1" }, { body: "bt2" }, { body: "bt3" }],
-    //       "title",
-    //       "footer"
-    //     );
-    //     client.sendMessage(message.from, button);
-    //   } else if (message.body === "!lists") {
-    //     client.sendMessage(message.from, "lists");
-    //     var sections = [
-    //       {
-    //         title: "sectionTitle",
-    //         rows: [
-    //           { title: "ListItem1", description: "desc" },
-    //           { title: "ListItem2" },
-    //         ],
-    //       },
-    //     ];
-    //     var list = new List("List body", "btnText", sections, "Title", "footer");
-    //     client.sendMessage(message.from, list);
+  } else if (message.body === "!buttons") {
+    client.sendMessage(message.from, "buttons");
+    var button = new Buttons(
+      "Button body",
+      [
+        { id: "customId", body: "button1" },
+        { body: "button2" },
+        { body: "button3" },
+        { body: "button4" },
+      ],
+      "title",
+      "footer"
+    );
+    client.sendMessage(message.from, button);
+  } else if (message.body === "!lists") {
+    client.sendMessage(message.from, "lists");
+    var sections = [
+      {
+        title: "sectionTitle",
+        rows: [
+          // { title: "ListItem1", description: "desc" },
+          { title: "Ir. Soekarno" },
+          { title: "Jend. Soedirman" },
+          { title: "Moh. Hatta" },
+          { title: "Ya ndak tahu kok tanya saya." },
+        ],
+      },
+    ];
+    var list = new List(
+      "Siapa nama Presiden Republik Indonesia (test)",
+      "Opsi",
+      sections,
+      "Pertanyaan 1",
+      "footer"
+    );
+    client.sendMessage(message.from, list);
+  } else if (message.body === "!game") {
+    client.sendMessage(
+      message.from,
+      `Hi, let's play a game!\nJawab pertanyaan berikut dengan benar ya!`
+    );
+    game["pertanyaan1"](client, message.from);
   } else if (message.body == "!groups") {
     client.getChats().then((chats) => {
       const groups = chats.filter((chat) => chat.isGroup);
@@ -126,6 +217,44 @@ client.on("message", async (message) => {
         replyMsg +=
           "_You can use the group id to send a message to the group._";
         message.reply(replyMsg);
+      }
+    });
+  }
+  // Downloading media
+  if (message.hasMedia) {
+    message.downloadMedia().then((media) => {
+      // To better understanding
+      // Please look at the console what data we get
+      // console.log(media);
+
+      if (media) {
+        // The folder to store: change as you want!
+        // Create if not exists
+        const mediaPath = "./downloaded-media/";
+
+        if (!fs.existsSync(mediaPath)) {
+          fs.mkdirSync(mediaPath);
+        }
+
+        // Get the file extension by mime-type
+        const extension = mime.extension(media.mimetype);
+
+        // Filename: change as you want!
+        // I will use the time for this example
+        // Why not use media.filename? Because the value is not certain exists
+        const filename = message.from + new Date().getTime();
+
+        const fullFilename = mediaPath + filename + "." + extension;
+
+        // Save to file
+        try {
+          fs.writeFileSync(fullFilename, media.data, { encoding: "base64" });
+          console.log("File downloaded successfully!", fullFilename);
+          io.emit("message", "File downloaded successfully!" + fullFilename);
+        } catch (err) {
+          console.log("Failed to save the file:", err);
+          io.emit("message", "Failed to save the file:" + err);
+        }
       }
     });
   }
@@ -187,9 +316,10 @@ app.post("/send-media", async (req, res) => {
   const caption = req.body.caption;
   const fileUrl = req.body.file;
 
-  // const media = MessageMedia.fromFilePath('./image-example.png');
+  // const media = MessageMedia.fromFilePath("./image-example.png"); // untuk kirim based on file
   // const file = req.files.file;
-  // const media = new MessageMedia(file.mimetype, file.data.toString('base64'), file.name);
+  // const media = new MessageMedia(file.mimetype, file.data.toString("base64"), file.name);
+
   let mimetype;
   const attachment = await axios
     .get(fileUrl, {

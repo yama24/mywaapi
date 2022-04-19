@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "start:dev": "nodemon index.js",
+    "start:dev": "nodemon index.js --ignore 'res.json'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -24,7 +24,9 @@
     "express-fileupload": "^1.3.1",
     "express-validator": "^6.14.0",
     "nodemon": "^2.0.15",
+    "qrcode": "^1.5.0",
     "qrcode-terminal": "^0.12.0",
+    "socket.io": "^2.3.0",
     "whatsapp-web.js": "^1.16.5"
   }
 }
