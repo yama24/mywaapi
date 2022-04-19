@@ -1,5 +1,5 @@
 # mywaapi
-WhatsApp API made by me
+Unofficial WhatsApp API made by me on NodeJs
 
 ![Logo](https://static.whatsapp.net/rsrc.php/v3/yO/r/FsWUqRoOsPu.png)
 
