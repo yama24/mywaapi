@@ -1,4 +1,4 @@
-// const qrterminal = require("qrcode-terminal");
+const qrterminal = require("qrcode-terminal");
 const qrcode = require("qrcode");
 const express = require("express");
 const http = require("http");
@@ -34,7 +34,7 @@ app.use(
 );
 app.use(
   fileUpload({
-    debug: true,
+    debug: false,
   })
 );
 
@@ -76,7 +76,7 @@ io.on("connection", function (socket) {
 
   client.on("qr", (qr) => {
     console.log("QR RECEIVED", qr);
-    // qrterminal.generate(qr, { small: true });
+    qrterminal.generate(qr, { small: true });
     qrcode.toDataURL(qr, (err, url) => {
       socket.emit("qr", url);
       socket.emit("message", "QR Code received, scan please!");
