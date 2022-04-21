@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "start:multi": "node index-multi.js",
     "start:dev": "nodemon index.js --ignore 'res.json'",
+    "start:multi:dev": "nodemon index-multi.js --ignore 'whatsapp-sessions.json' --ignore 'res.json'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -13,7 +15,7 @@
     "url": "git+https://github.com/yama24/mywaapi.git"
   },
   "author": "Yama",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/yama24/mywaapi/issues"
   },
@@ -23,10 +25,14 @@
     "express": "^4.17.3",
     "express-fileupload": "^1.3.1",
     "express-validator": "^6.14.0",
-    "nodemon": "^2.0.15",
+    "http": "^0.0.1-security",
+    "mime-types": "^2.1.35",
     "qrcode": "^1.5.0",
     "qrcode-terminal": "^0.12.0",
     "socket.io": "^2.3.0",
     "whatsapp-web.js": "^1.16.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
   }
 }
