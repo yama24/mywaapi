@@ -58,7 +58,7 @@ app.get("/", (req, res) => {
 const client = new Client({
   restartOnAuthFail: true,
   puppeteer: {
-    headless: false,
+    headless: true,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
