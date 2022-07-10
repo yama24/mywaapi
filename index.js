@@ -8,6 +8,13 @@ const socketIO = require("socket.io");
 const fs = require("fs");
 const mime = require("mime-types");
 const { phoneNumberFormatter } = require("./formatter");
+const {
+  createEnvFileIfNotExists,
+  getEnvFile,
+  setEnvFile,
+  sendWebhook,
+  validURL,
+} = require("./helper");
 const { body, validationResult } = require("express-validator");
 const {
   Client,
@@ -20,7 +27,9 @@ const {
 
 const game = require("./game");
 
-const port = process.env.PORT || 8000;
+createEnvFileIfNotExists();
+const ENV = getEnvFile();
+const port = ENV.port;
 
 const app = express();
 const server = http.createServer(app);
@@ -46,58 +55,10 @@ app.get("/", (req, res) => {
   });
 });
 
-const ENV = "./env.json";
-
-const createEnvFileIfNotExists = function () {
-  if (!fs.existsSync(ENV)) {
-    try {
-      fs.writeFileSync(
-        ENV,
-        JSON.stringify({
-          webhook: "",
-        })
-      );
-      console.log("Env file created successfully.");
-    } catch (err) {
-      console.log("Failed to create env file: ", err);
-    }
-  }
-};
-createEnvFileIfNotExists();
-
-const getEnvFile = function () {
-  return JSON.parse(fs.readFileSync(ENV));
-};
-
-function sendWebhook(message) {
-  let env = getEnvFile();
-  if (env.webhook) {
-    var data = JSON.stringify(message);
-    var config = {
-      method: "get",
-      url: env.webhook,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-
-    axios(config)
-      .then(function (response) {
-        // console.log(JSON.stringify(response.data));
-      })
-      .catch(function (error) {
-        // console.log(error);
-      });
-  } else {
-    console.log("No webhook url in env.json file");
-  }
-}
-
 const client = new Client({
   restartOnAuthFail: true,
   puppeteer: {
-    headless: true,
+    headless: false,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -158,18 +119,18 @@ io.on("connection", function (socket) {
 
 client.on("message", async (message) => {
   if (message.type == "list_response") {
-    if (!fs.existsSync("./res.json")) {
-      fs.writeFileSync("./res.json", JSON.stringify([]));
-    }
+    // if (!fs.existsSync("./res.json")) {
+    //   fs.writeFileSync("./res.json", JSON.stringify([]));
+    // }
 
-    fs.readFile("./res.json", function (err, data) {
-      var json = JSON.parse(data);
-      json.push(message);
-      fs.writeFile("./res.json", JSON.stringify(json), function (err) {
-        if (err) throw err;
-        console.log("Saved!");
-      });
-    });
+    // fs.readFile("./res.json", function (err, data) {
+    //   var json = JSON.parse(data);
+    //   json.push(message);
+    //   fs.writeFile("./res.json", JSON.stringify(json), function (err) {
+    //     if (err) throw err;
+    //     console.log("Saved!");
+    //   });
+    // });
     if (message._data.quotedMsg.list.title) {
       numStr = message._data.quotedMsg.list.title.substr(
         message._data.quotedMsg.list.title.length - 1
@@ -270,6 +231,22 @@ client.on("message", async (message) => {
         message.reply(replyMsg);
       }
     });
+  } else if (message.body == "!webver") {
+    client.getWWebVersion().then((web) => {
+      client.sendMessage(message.from, `*WhatsApp Web Version* : ${web}`);
+    });
+  } else if (message.body === "!help") {
+    const mess = `*Bot Command Lists*
+    !ping
+    !sendto <number> <message>
+    !info
+    !buttons
+    !lists
+    !game
+    !groups
+    !webver
+    _thanks_`;
+    message.reply(mess);
   }
   // Downloading media
   if (message.hasMedia) {
@@ -335,7 +312,7 @@ app.post(
     if (!errors.isEmpty()) {
       return res.status(422).json({
         status: false,
-        message: errors.mapped(),
+        response: errors.mapped(),
       });
     }
 
@@ -347,7 +324,7 @@ app.post(
     if (!isRegisteredNumber) {
       return res.status(422).json({
         status: false,
-        message: "The number is not registered",
+        response: "The number is not registered",
       });
     }
 
@@ -396,14 +373,58 @@ app.post("/is-registered", async (req, res) => {
   }
 });
 
+// Set webhook url
+app.post("/set-webhook", async (req, res) => {
+  const url = req.body.url;
+  if (validURL(url)) {
+    const env = getEnvFile();
+    env.webhook = url;
+    setEnvFile(env);
+    res.status(200).json({
+      status: true,
+      response: env,
+    });
+  } else {
+    res.status(422).json({
+      status: false,
+      response: "The webhook url is not valid",
+    });
+  }
+});
+
+// Get webhook url
+app.post("/get-webhook", async (req, res) => {
+  const env = getEnvFile();
+  res.status(200).json({
+    status: true,
+    response: env.webhook,
+  });
+});
+
 // Send media
 app.post("/send-media", async (req, res) => {
   const num = req.body.number;
   let number;
   if (num.includes("@g.us")) {
     number = num;
+    const chat = client.getChatById(number).then((chats) => {
+      return chats.isGroup;
+    });
+    if (!chat) {
+      return res.status(422).json({
+        status: false,
+        response: "The number is not registered",
+      });
+    }
   } else {
     number = phoneNumberFormatter(num);
+    const isRegisteredNumber = await checkRegisteredNumber(number);
+    if (!isRegisteredNumber) {
+      return res.status(422).json({
+        status: false,
+        response: "The number is not registered",
+      });
+    }
   }
   const caption = req.body.caption;
   const fileUrl = req.body.file;
@@ -475,7 +496,7 @@ app.post(
     if (!errors.isEmpty()) {
       return res.status(422).json({
         status: false,
-        message: errors.mapped(),
+        response: errors.mapped(),
       });
     }
 
@@ -489,10 +510,20 @@ app.post(
       if (!group) {
         return res.status(422).json({
           status: false,
-          message: "No group found with name: " + groupName,
+          response: "No group found with name: " + groupName,
         });
       }
       chatId = group.id._serialized;
+    } else {
+      const chat = client.getChatById(chatId).then((chats) => {
+        return chats.isGroup;
+      });
+      if (!chat) {
+        return res.status(422).json({
+          status: false,
+          response: "The number is not registered",
+        });
+      }
     }
 
     client
@@ -523,25 +554,93 @@ app.post("/clear-message", [body("number").notEmpty()], async (req, res) => {
   if (!errors.isEmpty()) {
     return res.status(422).json({
       status: false,
-      message: errors.mapped(),
+      response: errors.mapped(),
     });
   }
 
-  const number = phoneNumberFormatter(req.body.number);
-
-  const isRegisteredNumber = await checkRegisteredNumber(number);
-
-  if (!isRegisteredNumber) {
-    return res.status(422).json({
-      status: false,
-      message: "The number is not registered",
+  const num = req.body.number;
+  let number;
+  if (num.includes("@g.us")) {
+    number = num;
+    const chat = client.getChatById(number).then((chats) => {
+      return chats.isGroup;
     });
+    if (!chat) {
+      return res.status(422).json({
+        status: false,
+        response: "The number is not registered",
+      });
+    }
+  } else {
+    number = phoneNumberFormatter(num);
+    const isRegisteredNumber = await checkRegisteredNumber(number);
+    if (!isRegisteredNumber) {
+      return res.status(422).json({
+        status: false,
+        response: "The number is not registered",
+      });
+    }
   }
 
   const chat = await client.getChatById(number);
 
   chat
     .clearMessages()
+    .then((status) => {
+      res.status(200).json({
+        status: true,
+        response: status,
+      });
+    })
+    .catch((err) => {
+      res.status(500).json({
+        status: false,
+        response: err,
+      });
+    });
+});
+
+// Clearing message on spesific chat
+app.post("/delete-chat", [body("number").notEmpty()], async (req, res) => {
+  const errors = validationResult(req).formatWith(({ msg }) => {
+    return msg;
+  });
+
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      status: false,
+      response: errors.mapped(),
+    });
+  }
+
+  const num = req.body.number;
+  let number;
+  if (num.includes("@g.us")) {
+    number = num;
+    const chat = client.getChatById(number).then((chats) => {
+      return chats.isGroup;
+    });
+    if (!chat) {
+      return res.status(422).json({
+        status: false,
+        response: "The number is not registered",
+      });
+    }
+  } else {
+    number = phoneNumberFormatter(num);
+    const isRegisteredNumber = await checkRegisteredNumber(number);
+    if (!isRegisteredNumber) {
+      return res.status(422).json({
+        status: false,
+        response: "The number is not registered",
+      });
+    }
+  }
+
+  const chat = await client.getChatById(number);
+
+  chat
+    .delete()
     .then((status) => {
       res.status(200).json({
         status: true,

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "start:multi": "node index-multi.js",
-    "start:dev": "nodemon index.js --ignore 'res.json'",
+    "start:dev": "nodemon index.js --ignore 'res.json' --ignore 'env.json'",
     "start:multi:dev": "nodemon index-multi.js --ignore 'whatsapp-sessions.json' --ignore 'res.json'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
