@@ -46,6 +46,54 @@ app.get("/", (req, res) => {
   });
 });
 
+const ENV = "./env.json";
+
+const createEnvFileIfNotExists = function () {
+  if (!fs.existsSync(ENV)) {
+    try {
+      fs.writeFileSync(
+        ENV,
+        JSON.stringify({
+          webhook: "",
+        })
+      );
+      console.log("Env file created successfully.");
+    } catch (err) {
+      console.log("Failed to create env file: ", err);
+    }
+  }
+};
+createEnvFileIfNotExists();
+
+const getEnvFile = function () {
+  return JSON.parse(fs.readFileSync(ENV));
+};
+
+function sendWebhook(message) {
+  let env = getEnvFile();
+  if (env.webhook) {
+    var data = JSON.stringify(message);
+    var config = {
+      method: "get",
+      url: env.webhook,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    axios(config)
+      .then(function (response) {
+        // console.log(JSON.stringify(response.data));
+      })
+      .catch(function (error) {
+        // console.log(error);
+      });
+  } else {
+    console.log("No webhook url in env.json file");
+  }
+}
+
 const client = new Client({
   restartOnAuthFail: true,
   puppeteer: {
@@ -224,48 +272,55 @@ client.on("message", async (message) => {
     });
   }
   // Downloading media
-  // if (message.hasMedia) {
-  //   message.downloadMedia().then((media) => {
-  //     // To better understanding
-  //     // Please look at the console what data we get
-  //     // console.log(media);
+  if (message.hasMedia) {
+    message.downloadMedia().then((media) => {
+      // To better understanding
+      // Please look at the console what data we get
+      // console.log(media);
+      if (media) {
+        sendWebhook({
+          status: true,
+          response: message,
+          media: media,
+        });
+        // // The folder to store: change as you want!
+        // // Create if not exists
+        // const mediaPath = "./downloaded-media/";
 
-  //     if (media) {
-  //       // The folder to store: change as you want!
-  //       // Create if not exists
-  //       const mediaPath = "./downloaded-media/";
+        // if (!fs.existsSync(mediaPath)) {
+        //   fs.mkdirSync(mediaPath);
+        // }
 
-  //       if (!fs.existsSync(mediaPath)) {
-  //         fs.mkdirSync(mediaPath);
-  //       }
+        // // Get the file extension by mime-type
+        // const extension = mime.extension(media.mimetype);
 
-  //       // Get the file extension by mime-type
-  //       const extension = mime.extension(media.mimetype);
+        // // Filename: change as you want!
+        // // I will use the time for this example
+        // // Why not use media.filename? Because the value is not certain exists
+        // const filename = message.from + new Date().getTime();
 
-  //       // Filename: change as you want!
-  //       // I will use the time for this example
-  //       // Why not use media.filename? Because the value is not certain exists
-  //       const filename = message.from + new Date().getTime();
+        // const fullFilename = mediaPath + filename + "." + extension;
 
-  //       const fullFilename = mediaPath + filename + "." + extension;
-
-  //       // Save to file
-  //       try {
-  //         fs.writeFileSync(fullFilename, media.data, { encoding: "base64" });
-  //         console.log("File downloaded successfully!", fullFilename);
-  //         io.emit("message", "File downloaded successfully!" + fullFilename);
-  //       } catch (err) {
-  //         console.log("Failed to save the file:", err);
-  //         io.emit("message", "Failed to save the file:" + err);
-  //       }
-  //     }
-  //   });
-  // }
+        // // Save to file
+        // try {
+        //   fs.writeFileSync(fullFilename, media.data, { encoding: "base64" });
+        //   console.log("File downloaded successfully!", fullFilename);
+        //   io.emit("message", "File downloaded successfully!" + fullFilename);
+        // } catch (err) {
+        //   console.log("Failed to save the file:", err);
+        //   io.emit("message", "Failed to save the file:" + err);
+        // }
+      }
+    });
+  } else {
+    sendWebhook({ status: true, response: message });
+  }
 });
 
 const checkRegisteredNumber = async function (number) {
-  const isRegistered = await client.isRegisteredUser(number);
-  return isRegistered;
+  // const isRegistered = await client.isRegisteredUser(number);
+  // return isRegistered;
+  return true;
 };
 
 // Send message
@@ -299,10 +354,12 @@ app.post(
     client
       .sendMessage(number, message)
       .then((response) => {
-        res.status(200).json({
+        data = {
           status: true,
           response: response,
-        });
+        };
+        sendWebhook(data);
+        res.status(200).json(data);
       })
       .catch((err) => {
         res.status(500).json({
@@ -312,6 +369,33 @@ app.post(
       });
   }
 );
+
+// Informations of connection
+app.post("/info", async (req, res) => {
+  const info = await client.getState();
+  res.status(200).json({
+    status: true,
+    response: info,
+  });
+});
+
+// Check if the number is registered
+app.post("/is-registered", async (req, res) => {
+  const number = phoneNumberFormatter(req.body.number);
+  const isRegisteredNumber = await checkRegisteredNumber(number);
+  if (isRegisteredNumber) {
+    res.status(200).json({
+      status: true,
+      response: "exists",
+    });
+  } else {
+    res.status(200).json({
+      status: false,
+      response: "not exists",
+    });
+  }
+});
+
 
 // Send media
 app.post("/send-media", async (req, res) => {
@@ -340,10 +424,13 @@ app.post("/send-media", async (req, res) => {
       caption: caption,
     })
     .then((response) => {
-      res.status(200).json({
+      data = {
         status: true,
         response: response,
-      });
+        media: media,
+      };
+      sendWebhook(data);
+      res.status(200).json(data);
     })
     .catch((err) => {
       res.status(500).json({
@@ -406,10 +493,12 @@ app.post(
     client
       .sendMessage(chatId, message)
       .then((response) => {
-        res.status(200).json({
+        data = {
           status: true,
           response: response,
-        });
+        };
+        sendWebhook(data);
+        res.status(200).json(data);
       })
       .catch((err) => {
         res.status(500).json({
