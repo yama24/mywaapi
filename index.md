@@ -94,7 +94,7 @@ then open http://localhost:8000/ for scaning qrCode or scaning qrCode from termi
 #### Get webhook/callback
 
 ```http
-  POST /set-webhook
+  POST /get-webhook
 ```
 
 #### Send media to contact/group
