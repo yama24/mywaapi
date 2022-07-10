@@ -54,7 +54,7 @@ then open http://localhost:8000/ for scaning qrCode or scaning qrCode from termi
 
 ## API Reference
 
-#### Send Message
+#### Send message to contact
 
 ```http
   POST /send-message
@@ -65,7 +65,39 @@ then open http://localhost:8000/ for scaning qrCode or scaning qrCode from termi
 | `number` | `string` | **Required**. destination number |
 | `message` | `string` | **Required**. message you want to send |
 
-#### Send Media
+#### Bot info
+
+```http
+  POST /info
+```
+
+#### Check is the number registered
+
+```http
+  POST /is-registered
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `number` | `string` | **Required**. target number |
+
+#### Set webhook/callback
+
+```http
+  POST /set-webhook
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `url` | `string` | **Required**. webhook url |
+
+#### Get webhook/callback
+
+```http
+  POST /set-webhook
+```
+
+#### Send media to contact/group
 
 ```http
   POST /send-media
@@ -73,11 +105,11 @@ then open http://localhost:8000/ for scaning qrCode or scaning qrCode from termi
 
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
-| `number` | `string` | **Required**. destination number |
+| `number` | `string` | **Required**. destination number/group id |
 | `caption` | `string` | **Required**. required captions |
 | `file` | `string` | **Required**. url or base64 file format |
 
-#### Send Message To Group
+#### Send message to group
 
 ```http
   POST /send-group-message
@@ -89,6 +121,27 @@ then open http://localhost:8000/ for scaning qrCode or scaning qrCode from termi
 | `message` | `string` | **Required**. message you want to send |
 
 The group id can be obtained by sending a !groups message to the bot. then the bot will send all group data in which there are bots and you.
+
+#### Clear message from chat
+
+```http
+  POST /clear-message
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `number` | `string` | **Required**. target number/group id |
+
+#### Delete chat
+
+```http
+  POST /delete-chat
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `number` | `string` | **Required**. target number/group id |
+
 
 ## Hidden Feature
 
@@ -103,6 +156,8 @@ Do this by sending a message to the bot
 | **!lists** | an example list of WhatsApp |
 | **!game** | a simple multiple choice game (change question and answer in [game.js](https://github.com/yama24/mywaapi/blob/view/game.js)) |
 | **!groups** | a list of groups that you and the bot follow |
+| **!webver** | a version of the WhatsApp Web |
+| **!help** | a list of bot commands |
 
 
 ## Mywaapi Library
