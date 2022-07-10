@@ -318,9 +318,9 @@ client.on("message", async (message) => {
 });
 
 const checkRegisteredNumber = async function (number) {
-  // const isRegistered = await client.isRegisteredUser(number);
-  // return isRegistered;
-  return true;
+  const isRegistered = await client.isRegisteredUser(number);
+  return isRegistered;
+  // return true;
 };
 
 // Send message
