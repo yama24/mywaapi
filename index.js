@@ -396,10 +396,15 @@ app.post("/is-registered", async (req, res) => {
   }
 });
 
-
 // Send media
 app.post("/send-media", async (req, res) => {
-  const number = phoneNumberFormatter(req.body.number);
+  const num = req.body.number;
+  let number;
+  if (num.includes("@g.us")) {
+    number = num;
+  } else {
+    number = phoneNumberFormatter(num);
+  }
   const caption = req.body.caption;
   const fileUrl = req.body.file;
 
