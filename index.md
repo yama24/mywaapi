@@ -161,7 +161,8 @@ Do this by sending a message to the bot
 
 
 ## Mywaapi Library
- - [PHP](https://packagist.org/packages/yama/mywaapi-php-lib)
+if you want it to be simpler and easier, use the following library to integrate mywaapi into your system
+ - [PHP use Composer](https://packagist.org/packages/yama/mywaapi-php-lib)
 
 
 ## 🚀 About Me
